@@ -62,46 +62,15 @@ class mtecConnectModbus {
         }
     }
 
+    async sendCommand(parameter, value) {
+        return await this.sendHexCommand(this.settings.frequencyConverterID + parameter + this.int2hex(value, 4));
+    }
+
     async sendHexCommand(command) {
         this.temp.sendBuffer.push(command + this.calcCRC(command));
         this.sendHex();
         await this.until(_ => this.temp.valueBuffer.length > 0);
         return this.temp.valueBuffer.shift().value;
-    }
-
-    calcCRC(command) {
-        var buffer = this.hex2array(command);
-        var crc = 0xFFFF;
-        for (var pos = 0; pos < buffer.length; pos++) {
-            crc ^= buffer[pos];
-            for (var i = 8; i != 0; i--) {
-                if ((crc & 0x0001) != 0) {
-                    crc >>= 1;
-                    crc ^= 0xA001;
-                } else
-                    crc >>= 1;
-            }
-        }
-        var reversed = (crc % 256) * 256 + Math.floor(crc / 256);
-        var crcstr = reversed.toString(16);
-        while (crcstr.length < 4) {
-            crcstr = "0" + crcstr;
-        }
-        return crcstr.toString(16).toUpperCase();
-    }
-
-    int2hex(value, length) {
-        var s = Math.round(value).toString(16).toUpperCase();
-        while (s.length < length) {
-            s = "0" + s;
-        }
-        return s;
-    }
-    hex2int(hex) {
-        return parseInt(hex, 16);
-    }
-    hex2array(hexString) {
-        return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
     }
 
     sendHex() {
@@ -190,7 +159,6 @@ class mtecConnectModbus {
         }
     }
 
-
     until(conditionFunction) {
         const poll = resolve => {
             if (conditionFunction()) resolve();
@@ -199,11 +167,42 @@ class mtecConnectModbus {
         return new Promise(poll);
     }
 
-
-
-    async sendCommand(parameter, value) {
-        return await this.sendHexCommand(this.settings.frequencyConverterID + parameter + this.int2hex(value, 4));
+    calcCRC(command) {
+        var buffer = this.hex2array(command);
+        var crc = 0xFFFF;
+        for (var pos = 0; pos < buffer.length; pos++) {
+            crc ^= buffer[pos];
+            for (var i = 8; i != 0; i--) {
+                if ((crc & 0x0001) != 0) {
+                    crc >>= 1;
+                    crc ^= 0xA001;
+                } else
+                    crc >>= 1;
+            }
+        }
+        var reversed = (crc % 256) * 256 + Math.floor(crc / 256);
+        var crcstr = reversed.toString(16);
+        while (crcstr.length < 4) {
+            crcstr = "0" + crcstr;
+        }
+        return crcstr.toString(16).toUpperCase();
     }
+
+    int2hex(value, length) {
+        var s = Math.round(value).toString(16).toUpperCase();
+        while (s.length < length) {
+            s = "0" + s;
+        }
+        return s;
+    }
+    hex2int(hex) {
+        return parseInt(hex, 16);
+    }
+    hex2array(hexString) {
+        return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    }
+
+
 
     get ready() {
         return (async () => {
