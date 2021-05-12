@@ -1,17 +1,7 @@
 class mtecConnectModbus {
-    fiConfiguration = {
-	"VF-S15": {
-	    "maxOutputVoltage": 600,
-	    "maxCurrent": 33,
-	    "maxTorque": undefined
-	}
-    };
-
-
     constructor(frequencyConverterID = "01") {
         this.settings = {
             "frequencyConverterID": frequencyConverterID,
-	    "fi": "VF-S15",
             "keepAlive": {
                 "command": "03FD000001",
                 "interval": 250,
@@ -239,7 +229,6 @@ class mtecConnectModbus {
     get voltage() {
         return (async () => {
 	    return await this.sendCommand("03FD05", 1) / 100;
-            //return await this.sendCommand("03FD05", 1) / 100 / 100 * this.FiConfiguration[this.settings.fi].maxOutputVoltage;
         })();
     }
     set voltage(value) {
@@ -249,7 +238,6 @@ class mtecConnectModbus {
     get current() {
         return (async () => {
             return await this.sendCommand("03FD03", 1)  / 100;
-            //return await this.sendCommand("03FD03", 1)  / 100 / 100 * this.FiConfiguration[this.settings.fi].maxCurrent;
         })();
     }
     set current(value) {
@@ -259,7 +247,6 @@ class mtecConnectModbus {
     get torque() {
         return (async () => {
             return await this.sendCommand("03FD18", 1) / 100;
-	    //return await this.sendCommand("03FD18", 1) / 100 / 100 * this.FiConfiguration[this.settings.fi].maxTorque;
         })();
     }
     set torque(value) {
