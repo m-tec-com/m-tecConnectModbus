@@ -265,6 +265,10 @@ class mtecConnectModbus {
         return await this.sendHexCommand(this.settings.frequencyConverterID + "06FA001000");
     }
 
+    get speed(){
+	throw new Error("speed not getable");    
+    }
+	
     set speed(value) {
         return (async () => {
             if (value != this.temp.lastSpeed) {
