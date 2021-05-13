@@ -27,6 +27,8 @@
 > * `.connect()` has to be triggered by user gesture (e.g. onclick)
 > * communication takes some time &rarr; use async functions and await
 
+&nbsp;
+
 ## Documentation
 
 ### :wrench: &nbsp; :boom: &nbsp; constructor
