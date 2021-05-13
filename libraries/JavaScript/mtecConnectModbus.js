@@ -1,7 +1,7 @@
 class mtecConnectModbus {
-    constructor(frequencyConverterID = "01") {
+    constructor(frequencyInverterID = "01") {
         this.settings = {
-            "frequencyConverterID": frequencyConverterID,
+            "frequencyInverterID": frequencyInverterID,
             "keepAlive": {
                 "command": "03FD000001",
                 "interval": 250,
@@ -63,7 +63,7 @@ class mtecConnectModbus {
     }
 
     async sendCommand(parameter, value) {
-        return await this.sendHexCommand(this.settings.frequencyConverterID + parameter + this.int2hex(value, 4));
+        return await this.sendHexCommand(this.settings.frequencyInverterID + parameter + this.int2hex(value, 4));
     }
 
     async sendHexCommand(command) {
@@ -88,7 +88,7 @@ class mtecConnectModbus {
                 } else {
                     var command = this.settings.keepAlive.command;
                 }
-                var value = await this.sendHexCommand(this.settings.frequencyConverterID + command);
+                var value = await this.sendHexCommand(this.settings.frequencyInverterID + command);
                 if (typeof this.settings.keepAlive.callback == "function") {
                     this.settings.keepAlive.callback(value);
                 }
@@ -253,16 +253,16 @@ class mtecConnectModbus {
     }
 
     async start() {
-        return await this.sendHexCommand(this.settings.frequencyConverterID + "06FA00C400");
+        return await this.sendHexCommand(this.settings.frequencyInverterID + "06FA00C400");
     }
     async startReverse() {
-        return await this.sendHexCommand(this.settings.frequencyConverterID + "06FA00C600");
+        return await this.sendHexCommand(this.settings.frequencyInverterID + "06FA00C600");
     }
     async stop() {
-        return await this.sendHexCommand(this.settings.frequencyConverterID + "06FA000000");
+        return await this.sendHexCommand(this.settings.frequencyInverterID + "06FA000000");
     }
     async emergencyStop() {
-        return await this.sendHexCommand(this.settings.frequencyConverterID + "06FA001000");
+        return await this.sendHexCommand(this.settings.frequencyInverterID + "06FA001000");
     }
 
     get speed(){
