@@ -1,5 +1,24 @@
 class mtecConnectModbus:
-    def __init__(self, frequencyConverterID = "01"):
+    def __init__(self, frequencyInverterID = "01"):
+        self.settings_frequencyInverterID = frequencyInverterID
+        self.settings_keepAlive_command = "03FD000001"
+        self.settings_keepAlive_interval = 250
+        self.settings_keepAlive_callback = undefined
+        self.settings_keepAlive_active = true
+        self.settings_serial_baudRate = 19200
+        self.settings_serial_dataBits = 8
+        self.settings_serial_stopBits = 2
+        self.settings_serial_parity = "none"
+        self.settings_serial_flowControl = "none"
+        self.settings_log = false
+        self.temp_sendBuffer = []
+        self.temp_valueBuffer = []
+        self.temp_readBuffer = []
+        self.temp_sendReady = false
+        self.temp_lastSpeed = 0
+        self.available = true # ToDo
+        self.connected = false
+        
         # ToDo
         print("init")
     
