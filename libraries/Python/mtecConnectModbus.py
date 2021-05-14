@@ -125,8 +125,8 @@ class mtecConnectModbus:
 
     @property
     def ready(self):
-        # ToDo
-        print("get ready")
+        switches = self.sendCommand("03FD06", 1);
+        return ((switches % 32) - (switches % 16) != 0);
     
     @ready.setter
     def ready(self, value):
@@ -134,54 +134,61 @@ class mtecConnectModbus:
     
     @property
     def frequency(self):
-        # ToDo
-        print("get frequency")
+        return self.sendCommand("03FD00", 1) / 100
     
     @frequency.setter
     def frequency(self, value):
-        # ToDo
-        print("set frequency")
+        return self.sendCommand("06FA01", value * 100)
         
     @property
     def voltage(self):
-        # ToDo
-        print("get voltage")
+        return self.sendCommand("03FD05", 1) / 100
     
     @voltage.setter
     def voltage(self, value):
         raise Exception("voltage not setable")
     
     @property
+    def current(self):
+        return self.sendCommand("03FD03", 1) / 100
+    
+    @current.setter
+    def current(self, value):
+        raise Exception("current not setable")
+    
+    @property
     def torque(self):
-        # ToDo
-        print("get torque")
+        return self.sendCommand("03FD18", 1) / 100
     
     @torque.setter
     def torque(self, value):
         raise Exception("torque not setable")
     
-    def start():
-        # ToDo
-        print("start")
+    def start(self):
+        return self.sendHexCommand(self.settings_frequencyInverterID + "06FA00C400")
     
-    def startReverse():
-        # ToDo
-        print("startReverse")
+    def startReverse(self):
+        return self.sendHexCommand(self.settings_frequencyInverterID + "06FA00C600")
     
-    def stop():
-        # ToDo
-        print("stop")
+    def stop(self):
+        return self.sendHexCommand(self.settings_frequencyInverterID + "06FA000000")
     
-    def ermergencyStop():
-        # ToDo
-        print("emergencyStop")
+    def ermergencyStop(self):
+        return self.sendHexCommand(self.settings_frequencyInverterID + "06FA001000")
     
     @property
     def speed(self):
         raise Exception("speed not getable")
     
     @speed.setter
-    def ready(self, value):
-        # ToDo
-        print("set speed")
-        
+    def speed(self, value):
+        if value != self.temp_lastSpeed:
+            if value == 0:
+                self.stop()
+            else:
+                if value < 0 and not self.temp_lastSpeed < 0:
+                    self.startReverse()
+                elif value > 0 and  not self.temp_lastSpeed > 0:
+                    self.start()
+                self.frequency = abs(value)
+        self.temp_lastSpeed = value
