@@ -216,7 +216,7 @@ class mtecConnectModbus {
 
     get frequency() {
         return (async () => {
-	    return await this.sendCommand("03FD00", 1);
+	    return await this.sendCommand("03FD00", 1) / 100;
         })();
     }
     set frequency(value) {
