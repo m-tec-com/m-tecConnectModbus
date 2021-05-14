@@ -1,35 +1,75 @@
+import serial
+import math
+
 class mtecConnectModbus:
     def __init__(self, frequencyInverterID = "01"):
         self.settings_frequencyInverterID = frequencyInverterID
         self.settings_keepAlive_command = "03FD000001"
         self.settings_keepAlive_interval = 250
-        self.settings_keepAlive_callback = undefined
-        self.settings_keepAlive_active = true
-        self.settings_serial_baudRate = 19200
-        self.settings_serial_dataBits = 8
-        self.settings_serial_stopBits = 2
-        self.settings_serial_parity = "none"
-        self.settings_serial_flowControl = "none"
-        self.settings_log = false
+        self.settings_keepAlive_callback = None
+        self.settings_keepAlive_active = True
+        #self.settings_serial_baudRate = 19200
+        self.settings_serial_baudRate = 9600
+        self.settings_serial_dataBits = serial.EIGHTBITS
+        self.settings_serial_stopBits = serial.STOPBITS_TWO
+        self.settings_serial_parity = serial.PARITY_NONE
+        self.settings_log = False
         self.temp_sendBuffer = []
         self.temp_valueBuffer = []
         self.temp_readBuffer = []
-        self.temp_sendReady = false
+        self.temp_sendReady = False
         self.temp_lastSpeed = 0
-        self.available = true # ToDo
-        self.connected = false
-        
-        # ToDo
-        print("init")
+        self.available = True # ToDo
+        self.connected = False
     
     def connect(self):
-        # ToDo
-        print("connect")
+        self.serial = serial.Serial(baudrate=self.settings_serial_baudRate, parity=self.settings_serial_parity,stopbits=self.settings_serial_stopBits,bytesize=self.settings_serial_dataBits,port=self.serial_port)
     
     def sendCommand(self, parameter, value):
-        # ToDo
-        print("sendCommand")
+        data = self.settings_frequencyInverterID + parameter + value
+        crc = self.calcCRC(data)
+        command = data + crc
+        self.sendHex(command.encode())
+        
+    def sendHex(self, command):
+        self.serial.write(command.encode());
+        
+    def waitForResponse(self):
+        print("waitForResponse")
+        
+    def calcCRC(self, command):
+        buffer = bytearray.fromhex(command)
+        crc = 0xFFFF
+        for pos in range(len(buffer)):
+            crc ^= buffer[pos];
+            for k in range(9):
+                i = 8 - k
+                if ((crc & 0x0001) != 0):
+                    crc >>= 1
+                    crc ^= 0xA001
+                else:
+                    crc >>= 1;
+        crcstr = hex((crc % 256) * 256 + math.floor(crc / 256))[2:]
+        while (len(crcstr) < 4):
+            crcstr = "0" + crcstr
+        return crcstr.upper()
     
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @property
     def ready(self):
         # ToDo
@@ -91,3 +131,4 @@ class mtecConnectModbus:
     def ready(self, value):
         # ToDo
         print("set speed")
+        

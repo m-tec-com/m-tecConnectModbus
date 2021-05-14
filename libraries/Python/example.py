@@ -1,6 +1,8 @@
-from mtecConnectModbus import mtecConnectModbus as pump
+from mtecConnectModbus import mtecConnectModbus
+pump = mtecConnectModbus("01");
 
 def connect():
+    pump.serial_port = '/dev/cu.usbmodem1431201'
     pump.connect()
     
 def stop():
@@ -12,3 +14,8 @@ def changeSpeed(newSpeed):
 def updatedValue(newValue):
     print(newValue)
     
+
+
+
+
+
