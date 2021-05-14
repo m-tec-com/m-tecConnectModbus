@@ -1,5 +1,6 @@
 import serial
 import math
+import time
 
 class mtecConnectModbus:
     def __init__(self, frequencyInverterID = "01"):
@@ -24,19 +25,90 @@ class mtecConnectModbus:
     
     def connect(self):
         self.serial = serial.Serial(baudrate=self.settings_serial_baudRate, parity=self.settings_serial_parity,stopbits=self.settings_serial_stopBits,bytesize=self.settings_serial_dataBits,port=self.serial_port)
+        self.connected = True
+        self.temp_sendReady = True
     
     def sendCommand(self, parameter, value):
-        data = self.settings_frequencyInverterID + parameter + value
+        return self.sendHexCommand(self.settings_frequencyInverterID + parameter + self.int2hex(value,4))
+        
+    def sendHexCommand(self, data):
         crc = self.calcCRC(data)
         command = data + crc
-        self.sendHex(command.encode())
+        self.temp_sendBuffer.append(command)
+        return self.sendHex()
         
-    def sendHex(self, command):
-        self.serial.write(command.encode());
+    def sendHex(self):
+        if self.temp_sendReady and len(self.temp_sendBuffer) > 0:
+            self.send(self.temp_sendBuffer.pop())
+            self.waitForResponse()
+            self.temp_sendReady = True
+            if len(self.temp_valueBuffer) > 0:
+                return self.temp_valueBuffer.pop()
+        
+    def send(self, command):
+        # ToDo
+        self.temp_sendReady = False
+        self.serial.write(command.encode())
         
     def waitForResponse(self):
-        print("waitForResponse")
+        command = "";
         
+        timeout = time.time() + 2
+        while True:
+            if self.serial.inWaiting() >= 3*2:
+                break
+            if time.time() > timeout:
+                self.serial.read(self.serial.inWaiting())
+                return False
+        message_fcID = int(self.serial.read(2), 16)
+        command += self.int2hex(message_fcID,2)
+        message_type = int(self.serial.read(2), 16)
+        command += self.int2hex(message_type,2)
+        
+        completeDataLength = 0
+        if message_type == 3: # Type: read
+            message_length = int(self.serial.read(2), 16)
+            command += self.int2hex(message_length, 2)
+            completeDataLength = 3 + message_length + 2 - 3# ID, Type, Length, <Length>, checksum, checksum - alreadyRead
+        elif message_type == 6: # Type: send
+            completeDataLength = 8 - 2 # 8 - alreadyRead
+            
+        while True:
+            if self.serial.inWaiting() >= completeDataLength*2:
+                break
+            if time.time() > timeout:
+                self.serial.read(self.serial.inWaiting())
+                return False    
+        
+        if message_type == 3: # Type: read
+            message_value = 0
+            for i in range(message_length):
+                message_value *= 256
+                m = int(self.serial.read(2), 16)
+                message_value += m
+                command += self.int2hex(m, 2)
+        elif message_type == 6: # Type: send
+            message_param = self.int2hex(int(self.serial.read(4), 16), 4)
+            command += message_param
+            message_value = int(self.serial.read(4), 16)
+            command += self.int2hex(message_value, 4)
+        message_crc = self.int2hex(int(self.serial.read(4), 16), 4)
+        
+        if self.calcCRC(command) != message_crc:
+            # ToDo: bad CRC
+            print("bad crc")
+        
+        self.temp_valueBuffer.append(message_value)
+        self.temp_sendReady = True
+        return True
+        
+        
+    def int2hex(self, value, length):
+        s = hex(value)[2:]
+        while (len(s) < length):
+            s = "0" + s
+        return s.upper()
+            
     def calcCRC(self, command):
         buffer = bytearray.fromhex(command)
         crc = 0xFFFF
@@ -49,26 +121,7 @@ class mtecConnectModbus:
                     crc ^= 0xA001
                 else:
                     crc >>= 1;
-        crcstr = hex((crc % 256) * 256 + math.floor(crc / 256))[2:]
-        while (len(crcstr) < 4):
-            crcstr = "0" + crcstr
-        return crcstr.upper()
-    
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return self.int2hex((crc % 256) * 256 + math.floor(crc / 256),4)
 
     @property
     def ready(self):
