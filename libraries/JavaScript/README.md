@@ -27,6 +27,8 @@
 > * `.connect()` has to be triggered by user gesture (e.g. onclick)
 > * communication takes some time &rarr; use async functions and await
 
+&nbsp;
+
 ## Documentation
 
 ### :wrench: &nbsp; :boom: &nbsp; constructor
@@ -52,7 +54,7 @@ Connects to the serial converter.
 > :memo: &nbsp; `.connect()` has to be triggered by user gesture (e.g. onclick)
 
 ```javascript
-connected = await pump.connect(); // has to be triggered by user gesture (e.g. onclick)
+var connected = await pump.connect(); // has to be triggered by user gesture (e.g. onclick)
 ```
 
 result:
@@ -106,7 +108,7 @@ parameters:
 Gets the actual frequency
 
 ```javascript
-var f = await pump.frequency;
+var frequency = await pump.frequency;
 ```
 
 result:
@@ -134,7 +136,7 @@ parameters:
 Gets the readiness of the machine (on)
 
 ```javascript
-var f = await pump.ready;
+var ready = await pump.ready;
 ```
 
 result:
@@ -147,7 +149,7 @@ result:
 Gets the actual output voltage
 
 ```javascript
-var f = await pump.voltage;
+var voltage = await pump.voltage;
 ```
 
 result:
@@ -160,7 +162,7 @@ result:
 Gets the actual output current
 
 ```javascript
-var f = await pump.current;
+var current = await pump.current;
 ```
 
 result:
@@ -173,7 +175,7 @@ result:
 Gets the actual torque
 
 ```javascript
-var f = await pump.torque;
+var torque = await pump.torque;
 ```
 
 result:
@@ -186,7 +188,7 @@ result:
 Sends custom command to inverter
 
 ```javascript
-var answer = await pump.sendCommand(parameter, value)
+var answer = await pump.sendCommand(parameter, value);
 ```
 
 parameters:
