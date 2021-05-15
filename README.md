@@ -12,4 +12,4 @@ So you can use an ethernet cable to transport the data but you might have to con
 ## Communication
 We provide some [documentation](docs) of the communication protocol in the docs folder.
 
-You might want to use our [JavaScript](libraries/JavaScript) library for an easier start.
+You might want to use our [JavaScript](libraries/JavaScript) or [Python](libraries/Python) libraries for an easier start.
