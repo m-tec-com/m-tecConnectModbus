@@ -1,14 +1,17 @@
 import serial
 import math
 import time
+from threading import Timer
 
 class mtecConnectModbus:
     def __init__(self, frequencyInverterID = "01"):
         self.settings_frequencyInverterID = frequencyInverterID
-        self.settings_keepAlive_command = "03FD000001"
+        #self.settings_keepAlive_command = "03FD000001"
+        self.settings_keepAlive_command = "06FD000001"
         self.settings_keepAlive_interval = 250
         self.settings_keepAlive_callback = None
         self.settings_keepAlive_active = True
+        self.settings_keepAlive_loop = None
         #self.settings_serial_baudRate = 19200
         self.settings_serial_baudRate = 9600
         self.settings_serial_dataBits = serial.EIGHTBITS
@@ -32,28 +35,47 @@ class mtecConnectModbus:
         return self.sendHexCommand(self.settings_frequencyInverterID + parameter + self.int2hex(value,4))
         
     def sendHexCommand(self, data):
+        print("f: sendHexCommand")
         crc = self.calcCRC(data)
         command = data + crc
         self.temp_sendBuffer.append(command)
         return self.sendHex()
         
     def sendHex(self):
+        print("f: sendHex")
         if self.temp_sendReady and len(self.temp_sendBuffer) > 0:
             self.send(self.temp_sendBuffer.pop())
             self.waitForResponse()
             self.temp_sendReady = True
             if len(self.temp_valueBuffer) > 0:
                 return self.temp_valueBuffer.pop()
-        
+    
+    def keepAlive(self):
+        print("f: keepAlive")
+        if callable(self.settings_keepAlive_command):
+            command = self.settings_keepAlive_command()
+        else:
+            command = self.settings_keepAlive_command
+        value = self.sendHexCommand(self.settings_frequencyInverterID + command)
+        print(value)
+        if callable(self.settings_keepAlive_callback):
+            self.settings_keepAlive_callback(value)
+    
     def send(self, command):
-        # ToDo
+        print("f: send")
         self.temp_sendReady = False
+        print("s: " + command)
         self.serial.write(command.encode())
+        if self.settings_keepAlive_active:
+            if hasattr(self.settings_keepAlive_loop, 'cancel') and callable(self.settings_keepAlive_loop.cancel):
+                self.settings_keepAlive_loop.cancel()
+            self.settings_keepAlive_loop = Timer(self.settings_keepAlive_interval / 1000, self.keepAlive)
+            self.settings_keepAlive_loop.start()
         
     def waitForResponse(self):
         command = "";
         
-        timeout = time.time() + 2
+        timeout = time.time_ns() + (50 * 1000)  #10ms
         while True:
             if self.serial.inWaiting() >= 3*2:
                 break
