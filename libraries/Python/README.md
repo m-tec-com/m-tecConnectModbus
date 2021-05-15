@@ -8,8 +8,12 @@
 ## Minimal init
 
 ```python
-from mtecConnectModbus import mtecConnectModbus as pump
+from mtecConnectModbus import mtecConnectModbus
+pump = mtecConnectModbus("01");
+
 def connect():
+    #pump.serial_port = '/dev/cu.usbmodem1431201'
+    pump.serial_port = 'COM3'
     pump.connect()
     
 def stop():
@@ -28,7 +32,8 @@ def changeSpeed(newSpeed):
 Creates the Object to use the library.
 
 ```python
-from mtecConnectModbus import mtecConnectModbus as pump
+from mtecConnectModbus import mtecConnectModbus
+pump = mtecConnectModbus("01");
 ```
 
 result:
