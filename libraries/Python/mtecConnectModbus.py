@@ -75,7 +75,7 @@ class mtecConnectModbus:
     def waitForResponse(self):
         command = "";
         
-        timeout = time.time_ns() + (50 * 1000)  #10ms
+        timeout = time.time_ns() + (10 * 1000 * 1000)  #10ms
         while True:
             if self.serial.inWaiting() >= 3*2:
                 break
@@ -94,7 +94,8 @@ class mtecConnectModbus:
             completeDataLength = 3 + message_length + 2 - 3# ID, Type, Length, <Length>, checksum, checksum - alreadyRead
         elif message_type == 6: # Type: send
             completeDataLength = 8 - 2 # 8 - alreadyRead
-            
+        
+        timeout = time.time_ns() + (10 * 1000 * 1000)  #10ms
         while True:
             if self.serial.inWaiting() >= completeDataLength*2:
                 break
