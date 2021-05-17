@@ -1,5 +1,3 @@
-#pip install tk
-
 from mtecConnectModbus import mtecConnectModbus
 pump = mtecConnectModbus("01");
 
@@ -16,10 +14,16 @@ def changeSpeed(newSpeed):
     
 def updatedValue(newValue):
     print(newValue)
-    newText = "Output: " + str(newValue) + "Hz"
+    newText = "Output: " + str(newValue/100) + "Hz"
     speedLabel.config(text=newText) 
-    
 
+def changeKeepAlive():
+    if(keepAliveVar.get() == 1):
+        print("active")
+        pump.settings_keepAlive_active = True
+    else:
+        print("inactive")
+        pump.settings_keepAlive_active = False        
     
     
 import tkinter
@@ -36,3 +40,7 @@ slider.pack()
 
 speedLabel = tkinter.Label(master, text="Output: Hz")
 speedLabel.pack()
+
+keepAliveVar = tkinter.IntVar(value=1)
+keepAlive = tkinter.Checkbutton(master, text='keepAlive',variable=keepAliveVar, onvalue=1, offvalue=0, command=changeKeepAlive)
+keepAlive.pack()
