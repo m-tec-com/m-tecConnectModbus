@@ -7,13 +7,11 @@ class mtecConnectModbus:
     def __init__(self, frequencyInverterID = "01"):
         self.settings_frequencyInverterID = frequencyInverterID
         self.settings_keepAlive_command = "03FD000001"
-        #self.settings_keepAlive_command = "06FD000001"
         self.settings_keepAlive_interval = 250
         self.settings_keepAlive_callback = None
         self.settings_keepAlive_active = True
         self.settings_keepAlive_loop = None
         self.settings_serial_baudRate = 19200
-        #self.settings_serial_baudRate = 9600
         self.settings_serial_dataBits = serial.EIGHTBITS
         self.settings_serial_stopBits = serial.STOPBITS_TWO
         self.settings_serial_parity = serial.PARITY_NONE
@@ -35,17 +33,15 @@ class mtecConnectModbus:
         return self.sendHexCommand(self.settings_frequencyInverterID + parameter + self.int2hex(value,4))
         
     def sendHexCommand(self, data):
-        print("f: sendHexCommand")
         crc = self.calcCRC(data)
         command = data + crc
         self.temp_sendBuffer.append(command)
         return self.sendHex()
         
     def sendHex(self):
-        print("f: sendHex")
         if self.temp_sendReady and len(self.temp_sendBuffer) > 0:
             self.send(self.temp_sendBuffer.pop())
-            self.waitForResponse()
+            #self.waitForResponse()
             self.temp_sendReady = True
             if len(self.temp_valueBuffer) > 0:
                 return self.temp_valueBuffer.pop()
@@ -57,15 +53,15 @@ class mtecConnectModbus:
         else:
             command = self.settings_keepAlive_command
         value = self.sendHexCommand(self.settings_frequencyInverterID + command)
-        print(value)
         if callable(self.settings_keepAlive_callback):
             self.settings_keepAlive_callback(value)
     
     def send(self, command):
-        print("f: send")
         self.temp_sendReady = False
         print("s: " + command)
-        self.serial.write(command.encode())
+        #self.serial.write(command.encode())
+        self.serial.write(bytes.fromhex(command))
+        self.waitForResponse()
         if self.settings_keepAlive_active:
             if hasattr(self.settings_keepAlive_loop, 'cancel') and callable(self.settings_keepAlive_loop.cancel):
                 self.settings_keepAlive_loop.cancel()
@@ -74,51 +70,51 @@ class mtecConnectModbus:
         
     def waitForResponse(self):
         command = ""
-        
-        timeout = time.time_ns() + (1000 * 1000 * 1000)  #10ms
+        timeout = time.time_ns() + (200 * 1000 * 1000)  #200ms
         while True:
-            if self.serial.inWaiting() >= 3*2:
+            if self.serial.inWaiting() >= 2:
                 break
             if time.time_ns() > timeout:
                 print("escape")
                 print(self.serial.read(self.serial.inWaiting()))
                 return False
-        message_fcID = int(self.serial.read(2), 16)
+        message_fcID = int.from_bytes(self.serial.read(1), "little")
         command += self.int2hex(message_fcID,2)
-        message_type = int(self.serial.read(2), 16)
+        message_type = int.from_bytes(self.serial.read(1), "little")
         command += self.int2hex(message_type,2)
-        print(command)
         
         completeDataLength = 0
         if message_type == 3: # Type: read
-            message_length = int(self.serial.read(2), 16)
+            message_length = int.from_bytes(self.serial.read(1), "little")
             command += self.int2hex(message_length, 2)
             completeDataLength = 3 + message_length + 2 - 3# ID, Type, Length, <Length>, checksum, checksum - alreadyRead
         elif message_type == 6: # Type: send
             completeDataLength = 8 - 2 # 8 - alreadyRead
-        
-        timeout = time.time_ns() + (10 * 1000 * 1000)  #10ms
+
         while True:
-            if self.serial.inWaiting() >= completeDataLength*2:
+            if self.serial.inWaiting() >= completeDataLength:
                 break
             if time.time_ns() > timeout:
-                self.serial.read(self.serial.inWaiting())
+                print("escape")
+                print(self.serial.read(self.serial.inWaiting()))
                 return False    
         
         if message_type == 3: # Type: read
             message_value = 0
             for i in range(message_length):
                 message_value *= 256
-                m = int(self.serial.read(2), 16)
+                m = int.from_bytes(self.serial.read(1), "little")
                 message_value += m
                 command += self.int2hex(m, 2)
         elif message_type == 6: # Type: send
-            message_param = self.int2hex(int(self.serial.read(4), 16), 4)
+            message_param = self.int2hex(int.from_bytes(self.serial.read(1), "little"), 2) + self.int2hex(int.from_bytes(self.serial.read(1), "little"), 2)
             command += message_param
-            message_value = int(self.serial.read(4), 16)
+            message_value0 = int.from_bytes(self.serial.read(1), "little")
+            message_value1 = int.from_bytes(self.serial.read(1), "little")
+            message_value = message_value0 * 256 + message_value1
             command += self.int2hex(message_value, 4)
-        message_crc = self.int2hex(int(self.serial.read(4), 16), 4)
-        
+        message_crc = self.int2hex(int.from_bytes(self.serial.read(1), "little"), 2) + self.int2hex(int.from_bytes(self.serial.read(1), "little"), 2)
+
         if self.calcCRC(command) != message_crc:
             # ToDo: bad CRC
             print("bad crc")
@@ -212,10 +208,8 @@ class mtecConnectModbus:
                 self.stop()
             else:
                 if value < 0 and not self.temp_lastSpeed < 0:
-                    print("startReverse")
                     self.startReverse()
                 elif value > 0 and  not self.temp_lastSpeed > 0:
-                    print("start")
                     self.start()
                 self.frequency = abs(value)
         self.temp_lastSpeed = value

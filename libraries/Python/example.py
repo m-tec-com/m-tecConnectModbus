@@ -5,7 +5,6 @@ pump = mtecConnectModbus("01");
 
 def connect():
     #pump.serial_port = '/dev/cu.usbmodem1431201'
-    pump.settings_keepAlive_active = False
     pump.serial_port = 'COM3'
     pump.connect()
     
