@@ -6,14 +6,14 @@ from threading import Timer
 class mtecConnectModbus:
     def __init__(self, frequencyInverterID = "01"):
         self.settings_frequencyInverterID = frequencyInverterID
-        #self.settings_keepAlive_command = "03FD000001"
-        self.settings_keepAlive_command = "06FD000001"
+        self.settings_keepAlive_command = "03FD000001"
+        #self.settings_keepAlive_command = "06FD000001"
         self.settings_keepAlive_interval = 250
         self.settings_keepAlive_callback = None
         self.settings_keepAlive_active = True
         self.settings_keepAlive_loop = None
-        #self.settings_serial_baudRate = 19200
-        self.settings_serial_baudRate = 9600
+        self.settings_serial_baudRate = 19200
+        #self.settings_serial_baudRate = 9600
         self.settings_serial_dataBits = serial.EIGHTBITS
         self.settings_serial_stopBits = serial.STOPBITS_TWO
         self.settings_serial_parity = serial.PARITY_NONE
@@ -73,19 +73,21 @@ class mtecConnectModbus:
             self.settings_keepAlive_loop.start()
         
     def waitForResponse(self):
-        command = "";
+        command = ""
         
-        timeout = time.time_ns() + (10 * 1000 * 1000)  #10ms
+        timeout = time.time_ns() + (1000 * 1000 * 1000)  #10ms
         while True:
             if self.serial.inWaiting() >= 3*2:
                 break
-            if time.time() > timeout:
-                self.serial.read(self.serial.inWaiting())
+            if time.time_ns() > timeout:
+                print("escape")
+                print(self.serial.read(self.serial.inWaiting()))
                 return False
         message_fcID = int(self.serial.read(2), 16)
         command += self.int2hex(message_fcID,2)
         message_type = int(self.serial.read(2), 16)
         command += self.int2hex(message_type,2)
+        print(command)
         
         completeDataLength = 0
         if message_type == 3: # Type: read
@@ -99,7 +101,7 @@ class mtecConnectModbus:
         while True:
             if self.serial.inWaiting() >= completeDataLength*2:
                 break
-            if time.time() > timeout:
+            if time.time_ns() > timeout:
                 self.serial.read(self.serial.inWaiting())
                 return False    
         
@@ -137,7 +139,7 @@ class mtecConnectModbus:
         crc = 0xFFFF
         for pos in range(len(buffer)):
             crc ^= buffer[pos];
-            for k in range(9):
+            for k in range(8):
                 i = 8 - k
                 if ((crc & 0x0001) != 0):
                     crc >>= 1
@@ -210,8 +212,10 @@ class mtecConnectModbus:
                 self.stop()
             else:
                 if value < 0 and not self.temp_lastSpeed < 0:
+                    print("startReverse")
                     self.startReverse()
                 elif value > 0 and  not self.temp_lastSpeed > 0:
+                    print("start")
                     self.start()
                 self.frequency = abs(value)
         self.temp_lastSpeed = value
