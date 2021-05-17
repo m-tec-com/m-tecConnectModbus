@@ -1,3 +1,5 @@
+> :warning: &nbsp; This library is not completely tested
+
 # Usage
 
 > :warning: &nbsp; [pyserial](https://github.com/pyserial/pyserial) has to be installed
@@ -17,7 +19,7 @@ def connect():
     pump.connect()
     
 def stop():
-    pump.stop()
+    pump.speed = 0
     
 def changeSpeed(newSpeed):
     pump.speed = newSpeed
