@@ -1,5 +1,7 @@
 > :warning: &nbsp; This library is not completely tested
 
+&nbsp;
+
 # Usage
 
 > :warning: &nbsp; [pyserial](https://github.com/pyserial/pyserial) has to be installed
