@@ -1,4 +1,4 @@
-> :warning: &nbsp; This library is not completely tested
+> :warning: &nbsp; This library is not perfect. Sometimes the returned values do not match with the requests if the communiction is fast.
 
 &nbsp;
 

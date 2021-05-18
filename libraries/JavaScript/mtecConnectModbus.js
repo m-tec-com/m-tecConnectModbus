@@ -30,6 +30,7 @@ class mtecConnectModbus {
 
     async connect() {
         this.serialStart();
+	await this.until(_ => this.connected);
         // ToDo: return true/false
         return true;
     }
