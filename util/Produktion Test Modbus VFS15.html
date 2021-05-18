@@ -30,7 +30,7 @@
     </style>
 </head>
 <button id="connectButton" class="circle" style="cursor: pointer; line-height: 5vw" onclick="connect()">
-    <br>Verbinden
+    Verbinden
 </button>
 <div id="s2" class="circle" style="cursor: help">Betriebsbereit</div>
 <button id="runButton" class="circle" style="cursor: pointer" onclick="startStop()" disabled>Start</button>
@@ -42,8 +42,10 @@
     pump.settings.keepAlive.callback = switches;
 
     async function connect() {
-        await pump.connect();
-        document.getElementById("runButton").disabled = false;
+
+	await pump.connect();
+	await (ready = pump.ready);
+	document.getElementById("runButton").disabled = false;
         document.getElementById("connectButton").disabled = true;
         document.getElementById("connectButton").innerHTML = "Schnittstelle</br>verbunden";
         document.getElementById("connectButton").style.backgroundColor = "lightgreen";
@@ -51,6 +53,7 @@
     }
 
     function switches(value) {
+	console.log(value);
         isReady = ((value % 32) - (value % 16) != 0);
         if (isReady) {
             document.getElementById("s2").style.backgroundColor = "green";
@@ -61,7 +64,8 @@
 
     running = false;
     async function startStop() {
-        if (!running) {
+        running = !running;
+        if (running) {
             await (pump.speed = 20);
             document.getElementById("runButton").innerHTML = "Stop";
             document.getElementById("runButton").style.backgroundColor = "lightgreen";
@@ -70,6 +74,5 @@
             document.getElementById("runButton").innerHTML = "Start";
             document.getElementById("runButton").style.backgroundColor = "lightcoral";
         }
-        running != running;
     }
 </script>
