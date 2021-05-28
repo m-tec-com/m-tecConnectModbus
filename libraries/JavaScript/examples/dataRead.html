@@ -1,5 +1,10 @@
 <button id="connectButton" onclick="connect()">Connect</button>
 <button id="readButton" onclick="startStopRead()" disabled>Start Read</button>
+<hr>
+<button id="runButton" onclick="startStopRun()" disabled>Start Pump</button>
+<input id="frequencyInput" type="number" min="0" max="100" step="0.01" value="50" disabled></input>
+<button id="frequencyButton" onclick="changeFrequency()" disabled>Change Frequency</button>
+<hr>
 <button id="saveCsvButton" onclick="saveCSV()" disabled>Save CSV</button>
 <button id="saveCsvButton" onclick="clearCSV()">Clear CSV</button>
 <div style="height: 75%; margin-top: 5%">
@@ -81,10 +86,33 @@ pump.settings.keepAlive.interval = diagramTimeResolution * 1000;
 pump.settings.keepAlive.callback = updateData;
 pump.settings.keepAlive.active = false;
 
+pumpRunning = false;
+
 function connect(){
 	pump.connect();
 	document.getElementById("connectButton").disabled = true;
-	document.getElementById("readButton").disabled = false;	
+	document.getElementById("readButton").disabled = false;
+	document.getElementById("runButton").disabled = false;
+	document.getElementById("frequencyInput").disabled = false;
+	document.getElementById("frequencyButton").disabled = false;
+}
+
+function changeFrequency(){
+	pump.frequency = document.getElementById("frequencyInput").value;	
+}
+
+function startStopRun(){
+	if(pumpRunning){
+		document.getElementById("runButton").innerHTML = "Start Pump";
+		pump.stop();
+	} else {
+		document.getElementById("runButton").innerHTML = "Stop Pump";
+		if(!pump.settings.keepAlive.active){
+			startStopRead();
+		}
+		pump.start();
+	}
+	pumpRunning = !pumpRunning;
 }
 
 async function startStopRead(){
