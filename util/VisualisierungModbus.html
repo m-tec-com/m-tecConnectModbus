@@ -255,7 +255,7 @@
     document.getElementById("frequencyInput").addEventListener("change", frequencyChanged);
 
     function frequencyChanged() {
-        inp = this.value * 100;
+        inp = Math.round(this.value * 100);
         value = inp.toString(16);
         while (value.length < 4) {
             value = "0" + value;
