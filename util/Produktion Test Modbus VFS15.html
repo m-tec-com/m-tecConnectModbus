@@ -54,10 +54,13 @@
 
     function switches(value) {
         isReady = ((value % 32) - (value % 16) != 0);
-        if (isReady) {
+        isRemote = ((value % 16) - (value % 8) != 0);
+        if (isReady && isRemote) {
             document.getElementById("s2").style.backgroundColor = "green";
+	    document.getElementById("runButton").disabled = false;
         } else {
             document.getElementById("s2").style.backgroundColor = "red";
+	    document.getElementById("runButton").disabled = true;
         }
     }
 
