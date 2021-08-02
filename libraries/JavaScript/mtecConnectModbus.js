@@ -15,7 +15,9 @@ class mtecConnectModbus {
                 parity: "none",
                 flowControl: "none"
             },
-            "log": false
+            "log": false,
+            "sendCallback": undefined,
+            "receivedCallback": undefined
         }
         this.temp = {
             "sendBuffer": [],
@@ -24,7 +26,7 @@ class mtecConnectModbus {
             "sendReady": false,
             "lastSpeed": 0
         }
-        this.available = ("serial"in navigator);
+        this.available = ("serial" in navigator);
         this.connected = false;
     }
 
@@ -109,6 +111,11 @@ class mtecConnectModbus {
     }
 
     send(hex) {
+
+        if (typeof this.settings.sendCallback == "function") {
+            this.settings.sendCallback(hex);
+        }
+
         this.temp.sendReady = false;
         var hexArray = this.hex2array(hex);
         const writer = this.port.writable.getWriter();
@@ -169,6 +176,10 @@ class mtecConnectModbus {
             if (this.calcCRC(command) != message.crc) {// ToDo: bad CRC
             }
             this.temp.valueBuffer.push(message);
+
+            if (typeof this.settings.receivedCallback == "function") {
+                this.settings.receivedCallback(command + message.crc);
+            }
 
             this.temp.sendReady = true;
             this.sendHex();
