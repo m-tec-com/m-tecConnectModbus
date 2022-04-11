@@ -2,7 +2,7 @@
 
 ## Supported Machines
 
-The P20 connect and P50 connect use Modbus RTU as communication protocol. (The duo-mix connect and SMP connect use OPC-UA instead.)
+The P20 connect and P50 connect use Modbus RTU as communication protocol. ([The duo-mix connect and SMP connect use OPC-UA instead.](https://github.com/m-tec-com/m-tecConnectOPC-UA))
 
 ## Connection
 The modbus connection is using the same plug as ethernet but not the same protocol.
