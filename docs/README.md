@@ -1,5 +1,5 @@
-- Quickstart with examples in german: QuickstartModbus-de.pdf
+- Quickstart with examples in German: QuickstartModbus-de.pdf
 
-- [Manual of the frequency inverter: https://www.esco-antriebstechnik.de/downloads/VF-S15_Handbuch_esco_d.pdf](https://www.esco-antriebstechnik.de/downloads/VF-S15_Handbuch_esco_d.pdf)
+- [Manual of the frequency inverter: https://www.toshiba.com/tic/datafiles/manuals/S15_Instruction_Manual.pdf](https://www.toshiba.com/tic/datafiles/manuals/S15_Instruction_Manual.pdf)
 
-- [Communication manual of the frequency inverter: https://inverterdrive.com/file/Toshiba-VFS15-RS485-Comms-Manual](https://inverterdrive.com/file/Toshiba-VFS15-RS485-Comms-Manual)
+- [Communication manual of the frequency inverter: https://www.toshiba.com/tic/datafiles/manuals/S15_RS485_Communication_Manual.pdf](https://www.toshiba.com/tic/datafiles/manuals/S15_RS485_Communication_Manual.pdf)
