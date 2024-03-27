@@ -105,6 +105,7 @@ class mtecConnectModbus:
                 self.print(self.serial.read(self.serial.inWaiting()))
                 return False    
         
+        isError = False
         if message_type == 3: # Type: read
             message_value = 0
             for i in range(message_length):
@@ -122,13 +123,20 @@ class mtecConnectModbus:
         elif message_type == 0x86:
             message_value = int.from_bytes(self.serial.read(1), "little")
             command += self.int2hex(message_value, 2)
-            self.print("error")
+            isError = True
         message_crc = self.int2hex(int.from_bytes(self.serial.read(1), "little"), 2) + self.int2hex(int.from_bytes(self.serial.read(1), "little"), 2)
 
         if self.calcCRC(command) != message_crc:
-            self.temp_valueBuffer.append(command)
+            isError = True
+            # ToDo
+            pass
         else:
-            self.temp_valueBuffer.append(message_value)
+            if isError:
+                # ToDo
+                self.print("error")
+                pass
+            else:
+                self.temp_valueBuffer.append(message_value)
         self.temp_sendReady = True
         return True
         
@@ -150,7 +158,7 @@ class mtecConnectModbus:
                     crc >>= 1
                     crc ^= 0xA001
                 else:
-                    crc >>= 1;
+                    crc >>= 1
         return self.int2hex((crc % 256) * 256 + math.floor(crc / 256),4)
     
     def print(self, content):
