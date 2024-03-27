@@ -29,6 +29,12 @@ class mtecConnectModbus:
         self.connected = True
         self.temp_sendReady = True
     
+    def read(self, command):
+        return self.sendCommand("03" + command, 1)
+    
+    def write(self, command, value):
+        return self.sendCommand("06" + command, value)
+
     def sendCommand(self, parameter, value):
         return self.sendHexCommand(self.settings_frequencyInverterID + parameter + self.int2hex(value,4))
         
@@ -47,7 +53,7 @@ class mtecConnectModbus:
                 return self.temp_valueBuffer.pop()
     
     def keepAlive(self):
-        print("f: keepAlive")
+        self.print("f: keepAlive")
         if callable(self.settings_keepAlive_command):
             command = self.settings_keepAlive_command()
         else:
@@ -58,7 +64,7 @@ class mtecConnectModbus:
     
     def send(self, command):
         self.temp_sendReady = False
-        print("s: " + command)
+        self.print("s: " + command)
         #self.serial.write(command.encode())
         self.serial.write(bytes.fromhex(command))
         self.waitForResponse()
@@ -75,8 +81,8 @@ class mtecConnectModbus:
             if self.serial.inWaiting() >= 2:
                 break
             if time.time_ns() > timeout:
-                print("escape")
-                print(self.serial.read(self.serial.inWaiting()))
+                self.print("escape")
+                self.print(self.serial.read(self.serial.inWaiting()))
                 return False
         message_fcID = int.from_bytes(self.serial.read(1), "little")
         command += self.int2hex(message_fcID,2)
@@ -95,10 +101,11 @@ class mtecConnectModbus:
             if self.serial.inWaiting() >= completeDataLength:
                 break
             if time.time_ns() > timeout:
-                print("escape")
-                print(self.serial.read(self.serial.inWaiting()))
+                self.print("escape")
+                self.print(self.serial.read(self.serial.inWaiting()))
                 return False    
         
+        isError = False
         if message_type == 3: # Type: read
             message_value = 0
             for i in range(message_length):
@@ -113,13 +120,23 @@ class mtecConnectModbus:
             message_value1 = int.from_bytes(self.serial.read(1), "little")
             message_value = message_value0 * 256 + message_value1
             command += self.int2hex(message_value, 4)
+        elif message_type == 0x86:
+            message_value = int.from_bytes(self.serial.read(1), "little")
+            command += self.int2hex(message_value, 2)
+            isError = True
         message_crc = self.int2hex(int.from_bytes(self.serial.read(1), "little"), 2) + self.int2hex(int.from_bytes(self.serial.read(1), "little"), 2)
 
         if self.calcCRC(command) != message_crc:
-            # ToDo: bad CRC
-            print("bad crc")
-        
-        self.temp_valueBuffer.append(message_value)
+            isError = True
+            # ToDo
+            pass
+        else:
+            if isError:
+                # ToDo
+                self.print("error")
+                pass
+            else:
+                self.temp_valueBuffer.append(message_value)
         self.temp_sendReady = True
         return True
         
@@ -134,20 +151,24 @@ class mtecConnectModbus:
         buffer = bytearray.fromhex(command)
         crc = 0xFFFF
         for pos in range(len(buffer)):
-            crc ^= buffer[pos];
+            crc ^= buffer[pos]
             for k in range(8):
                 i = 8 - k
                 if ((crc & 0x0001) != 0):
                     crc >>= 1
                     crc ^= 0xA001
                 else:
-                    crc >>= 1;
+                    crc >>= 1
         return self.int2hex((crc % 256) * 256 + math.floor(crc / 256),4)
+    
+    def print(self, content):
+        if self.settings_log:
+            print(content)
 
     @property
     def ready(self):
-        switches = self.sendCommand("03FD06", 1);
-        return ((switches % 32) - (switches % 16) != 0);
+        switches = self.read("FD06")
+        return ((switches % 32) - (switches % 16) != 0)
     
     @ready.setter
     def ready(self, value):
@@ -155,15 +176,15 @@ class mtecConnectModbus:
     
     @property
     def frequency(self):
-        return self.sendCommand("03FD00", 1) / 100
+        return self.read("FD00") / 100
     
     @frequency.setter
     def frequency(self, value):
-        return self.sendCommand("06FA01", value * 100)
+        return self.write("FA01", value * 100)
         
     @property
     def voltage(self):
-        return self.sendCommand("03FD05", 1) / 100
+        return self.read("FD05") / 100
     
     @voltage.setter
     def voltage(self, value):
@@ -171,7 +192,7 @@ class mtecConnectModbus:
     
     @property
     def current(self):
-        return self.sendCommand("03FD03", 1) / 100
+        return self.read("FD03") / 100
     
     @current.setter
     def current(self, value):
@@ -179,23 +200,23 @@ class mtecConnectModbus:
     
     @property
     def torque(self):
-        return self.sendCommand("03FD18", 1) / 100
+        return self.read("FD18") / 100
     
     @torque.setter
     def torque(self, value):
         raise Exception("torque not setable")
     
     def start(self):
-        return self.sendHexCommand(self.settings_frequencyInverterID + "06FA00C400")
+        return self.write("FA00", 0xC400)
     
     def startReverse(self):
-        return self.sendHexCommand(self.settings_frequencyInverterID + "06FA00C600")
+        return self.write("FA00", 0xC600)
     
     def stop(self):
-        return self.sendHexCommand(self.settings_frequencyInverterID + "06FA000000")
+        return self.write("FA00", 0x0000)
     
     def ermergencyStop(self):
-        return self.sendHexCommand(self.settings_frequencyInverterID + "06FA001000")
+        return self.write("FA00", 0x1000)
     
     @property
     def speed(self):

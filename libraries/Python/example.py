@@ -1,5 +1,5 @@
 from mtecConnectModbus import mtecConnectModbus
-pump = mtecConnectModbus("01");
+pump = mtecConnectModbus("01")
 
 def connect():
     #pump.serial_port = '/dev/cu.usbmodem1431201'
