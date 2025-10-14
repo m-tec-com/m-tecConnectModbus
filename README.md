@@ -1,5 +1,9 @@
 # mtecConnectModbus
 
+> [!Warning]
+> This library is deprecated, use [mtecconnect3dcp Python](https://github.com/m-tec-com/mtecconnect3dcp/tree/main/Python) or [mtecconnect3dcp JavaScript](https://github.com/m-tec-com/mtecconnect3dcp/tree/main/JavaScript)
+
+
 ## Supported Machines
 
 The P20 connect and P50 connect use Modbus RTU as communication protocol. ([The duo-mix connect and SMP connect use OPC-UA instead.](https://github.com/m-tec-com/m-tecConnectOPC-UA))
